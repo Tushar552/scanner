@@ -176,7 +176,7 @@
                         throw new Error('Network response was not ok');
                     }
                     // Redirect to the success page after processing
-                    window.location.href = '/success_page/';
+                    window.location.href = qrData;
                 })
                 .catch(error => {
                     console.error('Error processing QR code:', error);
