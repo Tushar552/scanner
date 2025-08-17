@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,17 +12,19 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #000000;
-            font-family: sans-serif; /* Added font for better readability */
+            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         #scanner-container {
-            position: relative;
-            width: 300px; /* Adjust scanner width as needed */
-            height: 300px; /* Adjust scanner height as needed */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            border: 2px solid #fff; /* Added border for better visibility */
-            border-radius: 5px; /* Added rounded corners */
+            width: 350px;
+            height: 350px;
+            position: relative;
         }
 
         #video {
@@ -37,9 +38,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            box-shadow: 0 0 20px #00ff00;
-            animation: scanning-animation 1s infinite alternate;
-            opacity: 0.8; /* Reduced opacity for better visibility */
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            animation: scanning-animation 1.5s linear infinite;
+            pointer-events: none; /* Prevent interference with touch events */
         }
 
         @keyframes scanning-animation {
@@ -51,7 +52,6 @@
             }
         }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -61,23 +61,30 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.4);
         }
 
         .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto; /* Adjusted margin for better centering */
+            background-color: #fff;
+            margin: 15% auto;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
             max-width: 400px;
             text-align: center;
-            border-radius: 5px; /* Added rounded corners */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Added box shadow */
         }
 
         .modal-content h2 {
-            margin-bottom: 10px; /* Added margin for better spacing */
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            word-break: break-all;
+            font-size: 16px;
+            color: #333;
         }
 
         .confirm-button {
@@ -85,25 +92,31 @@
             color: white;
             padding: 10px 20px;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
-            margin-top: 20px;
-            font-size: 16px; /* Increased font size */
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
         .confirm-button:hover {
             background-color: #45a049;
         }
 
-        .modal-content p {
-            margin-bottom: 20px; /* Added margin for better spacing */
-            word-break: break-all; /* Added word break to handle long QR codes */
-        }
-
-        /* Added styles for error message */
         #error-message {
             color: red;
             margin-top: 10px;
+            font-size: 14px;
+        }
+
+        /* Responsive design adjustments */
+        @media (max-width: 450px) {
+            #scanner-container {
+                width: 300px;
+                height: 300px;
+            }
+            .modal-content {
+                max-width: 350px;
+            }
         }
     </style>
 </head>
@@ -113,13 +126,13 @@
         <div id="scanning-effect"></div>
     </div>
 
-    <!-- Modal dialog -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <h2>Confirm QR Code</h2>
+            <h2>QR Code Detected</h2>
             <p id="qr-data"></p>
             <button id="confirm-button" class="confirm-button">Confirm</button>
-            <span id="error-message"></span> </div>
+            <span id="error-message"></span>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
@@ -131,16 +144,12 @@
 
         async function requestCameraPermission() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment' // Use the back camera
-                    }
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 return stream;
             } catch (error) {
-                console.error('Error accessing the camera:', error);
-                errorMessage.textContent = 'Error accessing the camera. Please check your camera settings.';
-                throw error; // Rethrow the error to handle it further if needed
+                console.error('Error accessing camera:', error);
+                errorMessage.textContent = 'Error accessing camera. Please check your camera settings.';
+                throw error;
             }
         }
 
@@ -149,10 +158,9 @@
                 const stream = await requestCameraPermission();
                 video.srcObject = stream;
                 video.play();
-                setInterval(scanQRCode, 500); // Reduced interval for faster scanning
+                setInterval(scanQRCode, 300);
             } catch (error) {
                 console.error('Failed to initialize camera:', error);
-                // Handle error appropriately, such as displaying a message to the user
             }
         }
 
@@ -163,7 +171,6 @@
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height);
             if (code) {
-                console.log('QR code detected in scanQRCode:', code.data);
                 openModal(code.data);
             }
         }
@@ -172,7 +179,6 @@
             const modal = document.getElementById('modal');
             const qrData = document.getElementById('qr-data');
             qrData.textContent = data;
-            console.log('QR code data in openModal:', data);
             modal.style.display = 'block';
         }
 
@@ -180,28 +186,26 @@
             const modal = document.getElementById('modal');
             if (event.target == modal) {
                 modal.style.display = 'none';
-                errorMessage.textContent = ''; // Clear error message on modal close
+                errorMessage.textContent = '';
             }
         };
 
         document.getElementById('confirm-button').addEventListener('click', function() {
             const qrData = document.getElementById('qr-data').textContent;
-            const confirmation = confirm('Do you want to proceed with QR code data: ' + qrData + '?');
+            const confirmation = confirm('Confirm QR code data: ' + qrData + '?');
             if (confirmation) {
-                // Send the QR code data to the server for processing
                 fetch('', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({ data: qrData }) // Ensure 'data' matches the key used in the view
+                    body: JSON.stringify({ data: qrData })
                 })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         }
-                        // Redirect to the success page after processing
                         window.location.href = '/success_page/';
                     })
                     .catch(error => {
@@ -209,18 +213,16 @@
                         errorMessage.textContent = 'Error processing QR code. Please try again.';
                     });
             } else {
-                // Close the modal if the user cancels
                 document.getElementById('modal').style.display = 'none';
             }
         });
 
-        // Function to get CSRF token from cookies
         function getCookie(name) {
-            var cookieValue = null;
+            let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
@@ -230,7 +232,7 @@
             return cookieValue;
         }
 
-        // Call the function to initialize camera when the page loads
         window.onload = initCamera;
     </script>
-</
+</body>
+</html>
